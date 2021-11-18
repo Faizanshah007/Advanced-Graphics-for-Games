@@ -24,7 +24,7 @@ void main ( void ) {
 	fragColour = grass;
  }
  else if(mapping.b > 0.0 || IN.height >= 30) {
-	fragColour = mix(mountain,grass,1.0-clamp(IN.height,0,0.3));
+	fragColour = mix(grass,mountain,smoothstep(0.0,400.0,IN.height));
  }
  //fragColour = value;//mix(value,IN.weights,1.0f);//mix(value, IN.colour, IN.snowAlpha);
  }
