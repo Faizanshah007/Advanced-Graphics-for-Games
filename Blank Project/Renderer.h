@@ -5,6 +5,8 @@
 #include "../nclgl/HeightMap.h"
 #include "SceneNode.h"
 
+class Light;
+
 class  Renderer : public  OGLRenderer {
 public:
 	Renderer(Window& parent);
@@ -16,15 +18,32 @@ public:
 protected:
 	void   DrawNode(SceneNode* n);
 
-	void  RenderHeightmap();
+	void  RenderHeightmapWithLight();
+	void  DrawSkybox();
+	void  DrawWater();
 
 	HeightMap* tropicalIsland;
+	Shader* heightMapShader;
 	GLuint	   terrainTex;
 	GLuint	   grassTex;
+
+	GLuint	   waterTex;
+	Shader* reflectShader;
+	float	   waterRotate;
+	float	   waterCycle;
+
 	GLuint	   areaMapTex;
+	GLuint	   bumpmap;
+
+	Light* light;
+	Shader* lightShader;
+
+	Shader* skyboxShader;
+
+	GLuint cubeMap;
 
 	SceneNode* root;
 	Camera* camera;
-	Shader* sceneShader;
-	Shader* heightMapShader;
+
+	Mesh* quad;
 };

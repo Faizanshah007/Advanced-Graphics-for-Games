@@ -8,8 +8,10 @@
 
 class  SceneNode {
 public:
-	SceneNode(Shader* sh = NULL, Mesh* m = NULL, Vector4 colour = Vector4(1, 1, 1, 1));
+	SceneNode(Shader* sh = NULL, Mesh* m = NULL, Vector4 colour = Vector4(0, 0, 0, 1), std::string name = "");
 	~SceneNode(void);
+
+	std::string name;
 
 	void   SetTransform(const  Matrix4& matrix) { transform = matrix; }
 	const  Matrix4& GetTransform()        const { return  transform; }

@@ -7,5 +7,5 @@ vec3  viewDir;
 out  vec4  fragColour;
 
 void  main(void)    {
-fragColour = texture(cubeTex ,normalize(IN.viewDir ));
+fragColour = texture(cubeTex ,normalize(IN.viewDir));
 }
