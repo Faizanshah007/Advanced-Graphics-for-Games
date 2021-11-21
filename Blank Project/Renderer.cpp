@@ -21,7 +21,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 
 	// Initializing tropicalIsland
 	////////////////////////////////////////////////////////////////////
-	tropicalIsland = new  HeightMap(TEXTUREDIR"noiseTexture.png");
+	tropicalIsland = new  HeightMap(TEXTUREDIR"noiseTexture.png", 3.0);
 
 	Vector3  dimensions = tropicalIsland->GetHeightmapSize();
 	camera->SetPosition(dimensions * Vector3(0.5, 2, 0.5));
@@ -103,7 +103,7 @@ void  Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
 	waterRotate += dt * 2.0f; //2 degrees a second
-	waterCycle += dt * 0.25f; //10  units a second
+	waterCycle += dt * 0.5f; //0.25f;//10  units a second
 	root->Update(dt);
 }
 
