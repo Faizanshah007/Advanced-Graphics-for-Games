@@ -229,6 +229,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 	auto hSize = tropicalIsland->GetHeightmapSize();
 	float sign = +1;
 
+	//Procedurally Generated Trees
 	if (scene.GetSceneName() == "treeObject") {
 		int index = 0;
 		glBindTexture(GL_TEXTURE_2D, treeTex);
