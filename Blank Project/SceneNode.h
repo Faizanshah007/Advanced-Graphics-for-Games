@@ -11,8 +11,6 @@ public:
 	SceneNode(Shader* sh = NULL, Mesh* m = NULL, Vector4 colour = Vector4(0, 0, 0, 1), std::string name = "");
 	~SceneNode(void);
 
-	std::string name;
-
 	void   SetTransform(const  Matrix4& matrix) { transform = matrix; }
 	const  Matrix4& GetTransform()        const { return  transform; }
 	Matrix4 GetWorldTransform()  const { return  worldTransform; }
@@ -27,6 +25,8 @@ public:
 	void              AddChild(SceneNode* s);
 	void			  RemoveChild(SceneNode* s);
 
+	std::string		  GetSceneName() const { return name; }
+
 
 	virtual  void    Update(float dt);
 	virtual  void    Draw(const  OGLRenderer& r);
@@ -36,7 +36,19 @@ public:
 	std::vector <SceneNode*>::const_iterator  GetChildIteratorEnd() {
 		return  children.end();
 	}
+
+	float     GetCameraDistance()  const { return  distanceFromCamera; }
+	void      SetCameraDistance(float f) { distanceFromCamera = f; }
+
+	static  bool  CompareByCameraDistance(SceneNode* a, SceneNode* b) {
+		return (a->distanceFromCamera <
+			b->distanceFromCamera) ? true : false;
+	}
+
 protected:
+
+	float     distanceFromCamera;
+
 	SceneNode* parent;
 	Mesh* mesh;
 	Shader* shader;
@@ -49,4 +61,6 @@ protected:
 	Vector4
 		colour;
 	std::vector <SceneNode*>     children;
+
+	std::string name;
 };

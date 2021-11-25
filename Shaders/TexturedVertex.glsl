@@ -9,7 +9,6 @@ in vec2 texCoord ;
 
  out Vertex {
  vec2 texCoord ;
- float height;
  //float snowAlpha;
  //vec4 colour;
 
@@ -17,7 +16,7 @@ in vec2 texCoord ;
 
  void main ( void ) {
  mat4 mvp = projMatrix * viewMatrix * modelMatrix;
- OUT.height = position.y;
+
  gl_Position = mvp * vec4 ( position , 1.0);
 // if(position.y > 400.0f) {
 //  OUT.snowAlpha = 1.0f;

@@ -4,6 +4,7 @@ uniform sampler2D	diffuseTex;
 uniform samplerCube cubeTex;
 uniform sampler2D	areaMapTex;
 uniform vec3		cameraPos;
+uniform float		clarity;
 in  Vertex {
 vec4  colour;
 vec2  texCoord;
@@ -26,7 +27,7 @@ vec3  reflectDir   = reflect(-viewDir ,normalize(IN.normal ));
 vec4  reflectTex   = texture(cubeTex ,reflectDir );
 
 fragColour         =   reflectTex + (diffuse * 0.25f);
-fragColour.a = 0.3;
+fragColour.a = clarity;
  
 
 }

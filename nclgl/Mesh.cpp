@@ -3,20 +3,15 @@
 
 using std::string;
 
-size_t isFirstTimeColourSet = 0;
-
-float colour_count = 0;
-
 Mesh::Mesh(void)	{
-	
+	glGenVertexArrays(1, &arrayObject);
 	
 	for(int i = 0; i < MAX_BUFFER; ++i) {
 		bufferObject[i] = 0;
 	}
-	glGenVertexArrays(1, &arrayObject);
 
 	numVertices  = 0;
-	type = GL_TRIANGLES;//
+	type		 = GL_TRIANGLES;
 
 	numIndices		= 0;
 	vertices		= nullptr;
@@ -44,9 +39,6 @@ Mesh::~Mesh(void)	{
 }
 
 void Mesh::Draw()	{
-
-	//BufferData();
-
 	glBindVertexArray(arrayObject);
 	if(bufferObject[INDEX_BUFFER]) {
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
@@ -74,54 +66,77 @@ void Mesh::DrawSubMesh(int i) {
 	glBindVertexArray(0);
 }
 
-void UploadAttribute(GLuint* id, int n, int sizeOne, int attribSize, int attribID, void* pointer, const string& debugName) {
-	if (!id) return;
+Mesh* Mesh::GenerateTriangle()	{
+	Mesh*m = new Mesh();
+	m->numVertices = 3;
 
-	bool doInit = !(*id);
-	if (doInit) {
-		glGenBuffers(1, id);
+	m->vertices = new Vector3[m->numVertices];
+	m->vertices[0] = Vector3(0.0f,	0.5f,	0.0f);
+	m->vertices[1] = Vector3(0.5f,  -0.5f,	0.0f);
+	m->vertices[2] = Vector3(-0.5f, -0.5f,	0.0f);
+
+	m->textureCoords = new Vector2[m->numVertices];
+	m->textureCoords[0] = Vector2(0.5f,	0.0f);
+	m->textureCoords[1] = Vector2(1.0f,	1.0f);
+	m->textureCoords[2] = Vector2(0.0f,	1.0f);
+
+	m->colours = new Vector4[m->numVertices];
+	m->colours[0] = Vector4(1.0f, 0.0f, 0.0f,1.0f);
+	m->colours[1] = Vector4(0.0f, 1.0f, 0.0f,1.0f);
+	m->colours[2] = Vector4(0.0f, 0.0f, 1.0f,1.0f);
+
+	m->GenerateNormals();
+	m->GenerateTangents();
+	m->BufferData();
+
+	return m;
+}
+
+Mesh* Mesh::GenerateQuad()	{
+	Mesh* m = new Mesh();
+
+	m->numVertices = 4;
+	m->type = GL_TRIANGLE_STRIP;
+
+	m->vertices			= new Vector3[m->numVertices];
+	m->textureCoords	= new Vector2[m->numVertices];
+	m->colours			= new Vector4[m->numVertices];
+	m->normals			= new Vector3[m->numVertices];
+	m->tangents			= new Vector4[m->numVertices];
+
+	m->vertices[0] = 	Vector3(-1.0f, 1.0f, 0.0f);
+	m->vertices[1] = 	Vector3(-1.0f,	-1.0f, 0.0f);
+	m->vertices[2] = 	Vector3(1.0f, 1.0f, 0.0f);
+	m->vertices[3] = 	Vector3(1.0f,  -1.0f, 0.0f);
+
+	m->textureCoords[0] = Vector2(0.0f,	1.0f);
+	m->textureCoords[1] = Vector2(0.0f,	0.0f);
+	m->textureCoords[2] = Vector2(1.0f,	1.0f);
+	m->textureCoords[3] = Vector2(1.0f,	0.0f);
+
+	for(int i = 0; i < 4; ++i) {
+		m->colours[i] = Vector4(1.0f, 1.0f,1.0f,1.0f);
+		m->normals[i] = Vector3(0.0f, 0.0f,-1.0f);
+		m->tangents[i] = Vector4(1.0f, 0.0f,0.0f, 1.0f);
 	}
 
-	if (!doInit) {
-		//// As you were doing
-		//if (debugName == "Colours") {
-		//	Vector4 temp[3] = { Vector4(1.0f, 0.0f, 0.0f, 1.0f), Vector4(1.0f, 0.25f, 0.0f, 1.0f) ,Vector4(1.0f, 0.0f, 0.0f, 1.0f) };
-		//	temp[2].y += colour_count;
-		//	colour_count += 0.1f;
-		//	if (colour_count >= 0.9f) {
-		//		colour_count = 0.0f;
-		//		//std::cout << "Reset\n";
-		//	}
-		//	glBindBuffer(GL_ARRAY_BUFFER, *id);
-		//	void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		//	memcpy(ptr, temp, sizeof(temp));
-		//	glUnmapBuffer(GL_ARRAY_BUFFER);
-		//	//std::cout << colour_count << std::endl;
-		//}
+	m->BufferData();
 
-	}
-	else {
-		glBindBuffer(GL_ARRAY_BUFFER, *id);
-		glBufferData(GL_ARRAY_BUFFER, n * sizeOne, pointer, GL_STATIC_DRAW);
+	return m;
+}
 
-		glVertexAttribPointer(attribID, attribSize, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(attribID);
-	}
-
-#if 0
+void UploadAttribute(GLuint* id, int numElements, int dataSize, int attribSize, int attribID, void* pointer, const string&debugName) {
 	glGenBuffers(1, id);
 	glBindBuffer(GL_ARRAY_BUFFER, *id);
-	glBufferData(GL_ARRAY_BUFFER, n * sizeOne, pointer, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, numElements * dataSize, pointer, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(attribID, attribSize, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attribID);
 
-#endif
 	glObjectLabel(GL_BUFFER, *id, -1, debugName.c_str());
-	//glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
-void Mesh::BufferData()	{
+void	Mesh::BufferData()	{
 	glBindVertexArray(arrayObject);
 
 	////Buffer vertex data
@@ -169,6 +184,96 @@ void Mesh::BufferData()	{
 	glBindVertexArray(0);	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+/*
+Stuff for later tutorials...
+*/
+
+void	Mesh::GenerateNormals()	{
+	if(!normals) {
+		normals = new Vector3[numVertices];
+	}
+	for(GLuint i = 0; i < numVertices; ++i){
+		normals[i] = Vector3();
+	}
+
+	int triCount = GetTriCount();
+
+	for (int i = 0; i < triCount; ++i) {
+		unsigned int a = 0;
+		unsigned int b = 0;
+		unsigned int c = 0;
+		GetVertexIndicesForTri(i, a, b, c);
+
+		Vector3 normal = Vector3::Cross((vertices[b] - vertices[a]), (vertices[c] - vertices[a]));
+
+		normals[a] += normal;
+		normals[b] += normal;
+		normals[c] += normal;
+	}
+	for(GLuint i = 0; i < numVertices; ++i){
+		normals[i].Normalise();
+	}
+}
+
+void Mesh::GenerateTangents() {
+	if(!textureCoords) {
+		return;
+	}
+	if(!tangents) {
+		tangents = new Vector4[numVertices];
+	}
+	for(GLuint i = 0; i < numVertices; ++i){
+		tangents[i] = Vector4(0,0,0,0);
+	}
+	int triCount = GetTriCount();
+
+	for (int i = 0; i < triCount; ++i) {
+		unsigned int a = 0;
+		unsigned int b = 0;
+		unsigned int c = 0;
+		GetVertexIndicesForTri(i, a, b, c);
+		Vector4 tangent = GenerateTangent(a,b,c);
+		tangents[a] += tangent;
+		tangents[b] += tangent;
+		tangents[c] += tangent;
+	}
+	for(GLuint i = 0; i < numVertices; ++i){
+		float handedness = tangents[i].w > 0.0f ? 1.0f : -1.0f;
+		tangents[i].w = 0.0f;
+		tangents[i].Normalise();
+		tangents[i].w = handedness;
+	}
+}
+
+Vector4 Mesh::GenerateTangent(int a, int b, int c)	 {
+	Vector3 ba = vertices[b] - vertices[a];
+	Vector3 ca = vertices[c] - vertices[a];
+
+	Vector2 tba = textureCoords[b] - textureCoords[a];
+	Vector2 tca = textureCoords[c] - textureCoords[a];
+
+	Matrix2 texMatrix = Matrix2(tba, tca);
+	texMatrix.Invert();
+
+	Vector3 tangent;
+	Vector3 binormal;
+
+	tangent		= ba * texMatrix.values[0] + ca * texMatrix.values[1];
+	binormal	= ba * texMatrix.values[2] + ca * texMatrix.values[3];
+
+	Vector3 normal  = Vector3::Cross(ba, ca);
+	Vector3 biCross = Vector3::Cross(tangent, normal);
+
+	float handedness = 1.0f;
+	if (Vector3::Dot(biCross, binormal) < 0.0f) {
+		handedness = -1.0f;
+	}
+
+	tangent.Normalise();
+ 
+	return Vector4(tangent.x, tangent.y, tangent.z, handedness);
 }
 
 
@@ -263,9 +368,11 @@ void ReadJointParents(std::ifstream& file, vector<int>& dest) {
 void ReadJointNames(std::ifstream& file, vector<string>& dest) {
 	int jointCount = 0;
 	file >> jointCount;
+	std::string scrap;
+	std::getline(file, scrap);
 	for (int i = 0; i < jointCount; ++i) {
 		std::string jointName;
-		file >> jointName;
+		std::getline(file, jointName);
 		dest.emplace_back(jointName);
 	}
 }
@@ -419,6 +526,25 @@ Mesh* Mesh::LoadFromMeshFile(const string& name) {
 	return mesh;
 }
 
+bool	Mesh::GetVertexIndicesForTri(unsigned int i, unsigned int& a, unsigned int& b, unsigned int& c) const {
+	unsigned int triCount = GetTriCount();
+	if (i >= triCount) {
+		return false;
+	}
+	
+	if (numIndices > 0) {
+		a = indices[(i * 3)];
+		b = indices[(i * 3) + 1];
+		c = indices[(i * 3) + 2];
+	}
+	else {
+		a = (i * 3);
+		b = (i * 3) + 1;
+		c = (i * 3) + 2;
+	}
+	return true;
+}
+
 int Mesh::GetIndexForJoint(const std::string& name) const {
 	for (unsigned int i = 0; i < jointNames.size(); ++i) {
 		if (jointNames[i] == name) {
@@ -458,167 +584,4 @@ bool Mesh::GetSubMesh(const string& name, const SubMesh* s) const {
 		}
 	}
 	return false;
-}
-
-Mesh* Mesh::GenerateTriangle() {
-	Mesh* m = new  Mesh();
-	m->numVertices = 3;
-	m->type = GL_TRIANGLES;
-	m->vertices = new Vector3[m->numVertices];
-	m->vertices[0] = Vector3(0.0f, 1.0f, 0.0f);
-	m->vertices[1] = Vector3(1.0f, -1.0f, 0.0f);
-	m->vertices[2] = Vector3(-1.0f, -1.0f, 0.0f);
-	/*m->vertices[3] = Vector3(0.5f, 0.5f, 0.0f);*/
-	/*m->vertices[4] = Vector3(0.0f, 0.5f, 0.0f);
-	m->vertices[5] = Vector3(0.0f, 0.25f, 0.0f);*/
-
-	m->colours = new Vector4[m->numVertices];
-	m->colours[0] = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-	m->colours[1] = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-	m->colours[2] = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-	/*m->colours[3] = Vector4(0.5f, 0.0f, 0.0f, 1.0f);*/
-	/*m->colours[4] = Vector4(0.0f, 0.5f, 0.0f, 1.0f);
-	m->colours[5] = Vector4(0.0f, 0.0f, 0.5f, 1.0f);*/
-
-	m->textureCoords = new Vector2[m->numVertices];
-	m->textureCoords[0] = Vector2(0.5f, 10.0f);
-	m->textureCoords[1] = Vector2(1.0f, 1.0f);
-	m->textureCoords[2] = Vector2(0.0f, 1.0f);
-
-	m->BufferData();
-	return m;
-}
-
-Mesh* Mesh::GenerateQuad() {
-	Mesh* m = new  Mesh();
-	m->numVertices = 4;
-	m->type = GL_TRIANGLE_STRIP;
-	m->vertices = new  Vector3[m->numVertices];
-	m->textureCoords = new  Vector2[m->numVertices];
-	m->colours = new  Vector4[m->numVertices];
-		m->vertices[0] = Vector3(-1.0f, 1.0f, 0.0f);
-	m->vertices[1] = Vector3(-1.0f, -1.0f, 0.0f);
-	m->vertices[2] = Vector3(1.0f, 1.0f, 0.0f);
-	m->vertices[3] = Vector3(1.0f, -1.0f, 0.0f);
-		m->textureCoords[0] = Vector2(0.0f, 1.0f);
-	m->textureCoords[1] = Vector2(0.0f, 0.0f);
-	m->textureCoords[2] = Vector2(1.0f, 1.0f);
-	m->textureCoords[3] = Vector2(1.0f, 0.0f);
-
-	m->normals = new  Vector3[m->numVertices];//Init  new  var!
-	m->tangents = new  Vector4[m->numVertices];//Init  new  var!
-
-		for (int i = 0; i < 4; ++i) {
-			m->colours[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-			m->normals[i] = Vector3(0.0f, 0.0f, -1.0f); //New!
-			m->tangents[i] = Vector4(1.0f, 0.0f, 0.0f, 1.0f); //New!
-		}
-	m->BufferData();
-	return m;
-}
-
-bool   Mesh::GetVertexIndicesForTri(unsigned  int i,
-	unsigned  int& a, unsigned  int& b, unsigned  int& c) const {
-	unsigned  int  triCount = GetTriCount();
-	if (i >= triCount) {
-		return false;
-	}
-	if (numIndices > 0) {
-		a = indices[(i * 3)];
-		b = indices[(i * 3) + 1];
-		c = indices[(i * 3) + 2];
-	}
-	else {
-		a = (i * 3);
-		b = (i * 3) + 1;
-		c = (i * 3) + 2;
-	}
-	return true;
-}
-
-void   Mesh::GenerateNormals() {
-	if (!normals) {
-		normals = new  Vector3[numVertices];
-	}
-	for (GLuint i = 0; i < numVertices; ++i) {
-		normals[i] = Vector3();
-	}
-
-	int  triCount = GetTriCount();
-
-	for (int i = 0; i < triCount; ++i) {
-		unsigned  int a = 0;
-		unsigned  int b = 0;
-		unsigned  int c = 0;
-		GetVertexIndicesForTri(i, a, b, c);
-
-		Vector3  normal = Vector3::Cross((vertices[b] - vertices[a]),
-			(vertices[c] - vertices[a]));
-
-		//Why not normalised before adding for right direction? its a normal right??
-		normal.Normalise();
-
-		normals[a] += normal;
-		normals[b] += normal;
-		normals[c] += normal;
-	}
-	for (GLuint i = 0; i < numVertices; ++i) {
-		normals[i].Normalise();
-	}
-}
-
-void  Mesh::GenerateTangents() {
-	if (!textureCoords) {
-		return;
-	}
-	if (!tangents) {
-		tangents = new Vector4[numVertices];
-	}
-	for (GLuint i = 0; i < numVertices; ++i) {
-		tangents[i] = Vector4(0, 0, 0, 0);
-	}
-
-	int triCount = GetTriCount();
-
-	for (int i = 0; i < triCount; ++i) {
-		unsigned  int a = 0;
-		unsigned  int b = 0;
-		unsigned  int c = 0;
-		GetVertexIndicesForTri(i, a, b, c);
-		Vector4  tangent = GenerateTangent(a, b, c);
-		tangents[a] += tangent;
-		tangents[b] += tangent;
-		tangents[c] += tangent;
-	}
-
-	for (GLuint i = 0; i < numVertices; ++i) {
-		float  handedness = tangents[i].w > 0.0f ? 1.0f : -1.0f;
-		tangents[i].w = 0.0f;
-		tangents[i].Normalise();
-		tangents[i].w = handedness;
-	}
-}
-
-Vector4  Mesh::GenerateTangent(int a, int b, int c) {
-	Vector3  ba = vertices[b] - vertices[a];
-	Vector3  ca = vertices[c] - vertices[a];
-
-	Vector2  tba = textureCoords[b] - textureCoords[a];
-	Vector2  tca = textureCoords[c] - textureCoords[a];
-
-	Matrix2  texMatrix = Matrix2(tba, tca);
-	texMatrix.Invert();
-
-	Vector3 tangent = ba * texMatrix.values[0] + ca * texMatrix.values[1];
-	Vector3 binormal = ba * texMatrix.values[2] + ca * texMatrix.values[3];
-
-	Vector3  normal = Vector3::Cross(ba, ca);
-	Vector3  biCross = Vector3::Cross(tangent, normal);
-
-	float  handedness = 1.0f;
-	if (Vector3::Dot(biCross, binormal) < 0.0f) {
-		handedness = -1.0f;
-	}
-
-	return  Vector4(tangent.x, tangent.y, tangent.z, handedness);
 }

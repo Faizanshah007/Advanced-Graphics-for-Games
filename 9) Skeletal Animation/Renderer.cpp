@@ -17,9 +17,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 		return;
 	}
 
-	mesh = Mesh::LoadFromMeshFile("Role_T.msh");
-	anim = new MeshAnimation("Role_T.anm");
-	material = new MeshMaterial("Role_T.mat");
+	mesh = Mesh::LoadFromMeshFile("Ch39_nonPBR@Rumba Dancing.msh");
+	anim = new MeshAnimation("Ch39_nonPBR@Rumba Dancing.anm");
+	material = new MeshMaterial("Ch39_nonPBR@Rumba Dancing.mat");
 
 	for (int i = 0; i < mesh->GetSubMeshCount(); ++i) {
 		const  MeshMaterialEntry* matEntry =

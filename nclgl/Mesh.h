@@ -46,14 +46,14 @@ public:
 		int count;
 	};
 
-	static  Mesh* GenerateTriangle();
-	static  Mesh* GenerateQuad();
-
 	Mesh(void);
 	~Mesh(void);
 
 	void Draw();
 	void DrawSubMesh(int i);
+
+	static Mesh*	GenerateTriangle();
+	static Mesh*	GenerateQuad();
 
 	static Mesh* LoadFromMeshFile(const std::string& name);
 
@@ -86,18 +86,18 @@ public:
 	bool GetSubMesh(int i, const SubMesh* s) const;
 	bool GetSubMesh(const std::string& name, const SubMesh* s) const;
 
-	void GenerateNormals();
-	bool GetVertexIndicesForTri(unsigned int i, unsigned int& a, unsigned int& b, unsigned int& c) const;
-
-	GLuint	bufferObject[MAX_BUFFER];
-
 protected:
 	void	BufferData();
-	
+
+	void	GenerateNormals();
 	void	GenerateTangents();
-	Vector4	GenerateTangent(int a, int b, int c);
+	Vector4 GenerateTangent(int vA, int vB, int vC);
+	bool	GetVertexIndicesForTri(unsigned int i, unsigned int& a, unsigned int& b, unsigned int& c) const;
+
 
 	GLuint	arrayObject;
+
+	GLuint	bufferObject[MAX_BUFFER];
 
 	GLuint	numVertices;
 	GLuint	numIndices;
