@@ -6,7 +6,7 @@ in Vertex {
 vec2 texCoord ;
 //float snowAlpha;
 //vec4 colour;
-vec4 weights;
+//vec4 weights;
 } IN;
 
 out vec4 fragColour ;

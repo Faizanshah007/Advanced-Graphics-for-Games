@@ -6,12 +6,16 @@
 #include <random>
 #include <vector>
 
+const  int  POST_PASSES = 0;
+
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
 std::vector<int> randomRot, randomDelta, randomDelta1;
 bool random_values_set = false;
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
+
+	quad = Mesh::GenerateQuad();
 
 	root = new  SceneNode();
 	camera = new  Camera();
@@ -45,6 +49,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.tga",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
+	waterBumpmap = SOIL_load_OGL_texture(
+		TEXTUREDIR"waterbump.PNG", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
 	bumpmap = SOIL_load_OGL_texture(
 		TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
@@ -66,31 +74,36 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	}
 
 	SetTextureRepeating(terrainTex, true);
+	SetTextureRepeating(bumpmap, true);
 	SetTextureRepeating(grassTex, true);
 	SetTextureRepeating(waterTex, true);
-	SetTextureRepeating(bumpmap, true);
+	SetTextureRepeating(waterBumpmap, true);
 
 	skyboxShader = new  Shader("skyboxVertex.glsl", "skyboxFragment.glsl");
 	reflectShader = new  Shader("reflectVertex.glsl", "reflectFragment.glsl");
 	objectShader = new Shader("SceneVertex.glsl", "SceneFragment.glsl");
-	animShader = new  Shader("SkinningVertex.glsl", "texturedFragment.glsl");
-	if (!skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !objectShader->LoadSuccess() || !animShader->LoadSuccess()) {
+	animShader = new  Shader("SkinningVertex.glsl", "SceneFragment.glsl");//"texturedFragment.glsl");
+	sceneShader = new  Shader("TexturedVertex.glsl", "/Backup/TexturedFragment.glsl");
+	processShader = new  Shader("TexturedVertex.glsl", "processfrag.glsl");
+	if (!skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !objectShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
 		return;
 	}
 	////////////////////////////////////////////////////////////////////
 
-	// Adding Light
+	// Adding Lights
 	////////////////////////////////////////////////////////////////////
 	Vector3 heightmapSize = tropicalIsland->GetHeightmapSize();
-	light = new  Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f),
+	light[0] = new  Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f),
 		Vector4(1, 1, 1, 1), heightmapSize.x * 0.5f);
+	light[1] = new  Light(heightmapSize * Vector3(0.5f, 0.2f, 0.6f),
+		Vector4(1, 0, 0, 2), heightmapSize.x * 0.07f);
 	
 	lightShader = new  Shader("bumpvertex.glsl", "bumpfragment.glsl");
 	if (!lightShader->LoadSuccess()) {
 		return;
 	}
 	////////////////////////////////////////////////////////////////////
-	auto heightmapLight = new SceneNode(lightShader, tropicalIsland, light->GetColour(), "heightmaplight");
+	auto heightmapLight = new SceneNode(lightShader, tropicalIsland, light[0]->GetColour(), "heightmaplight");
 	root->AddChild(heightmapLight);
 
 	// Adding tree
@@ -123,6 +136,46 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f, (float)width / (float)height, 45.0f);
 
+	// Generate  our  scene  depth  texture ...
+	glGenTextures(1, &bufferDepthTex);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height,
+		0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+	//And  our  colour  texture ...
+	for (int i = 0; i < 2; ++i) {
+		glGenTextures(1, &bufferColourTex[i]);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
+
+	glGenFramebuffers(1, &bufferFBO); //We’ll  render  the  scene  into  this
+	glGenFramebuffers(1, &processFBO);//And do post  processing  in this
+
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+		GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[0], 0);
+
+	//We can  check  FBO  attachment  success  using  this  command!
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ||
+		!bufferDepthTex || !bufferColourTex[0]) {
+		return;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -140,10 +193,20 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 Renderer ::~Renderer(void) {
 	delete root;
 	delete tropicalIsland;
-	delete light;
+	delete light[0];
+	delete light[1];
 	delete camera;
 	delete skyboxShader;
 	delete lightShader;
+	delete reflectShader;
+	delete objectShader;
+	delete animShader;
+	delete processShader;
+
+	glDeleteTextures(2, bufferColourTex);
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &processFBO);
 }
 
 void Renderer::Eliminate() {
@@ -174,12 +237,14 @@ void Renderer::DrawSkybox() {
 	glDepthMask(GL_TRUE);
 }
 
+float big = 0.0;
 void  Renderer::RenderCharacter(const SceneNode& scene) {
 
 	auto shader = scene.GetShader();
 	auto mesh = scene.GetMesh();
 
 	BindShader(shader);
+	SetShaderLight(*light[0]);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"diffuseTex"), 0);
 
@@ -187,8 +252,9 @@ void  Renderer::RenderCharacter(const SceneNode& scene) {
 
 	modelMatrix.ToIdentity();
 	modelMatrix = modelMatrix
-		* Matrix4::Translation(Vector3(hSize.x * (0.57), hSize.y * 0.06, hSize.z * (0.385)))
-		* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / 10.0);
+		* Matrix4::Translation(Vector3(hSize.x * (0.546), hSize.y * 0.027, hSize.z * (0.377)))
+		* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / (10.0 * 0.1) * std::clamp((sin(big)+1)/2, 0.1f, 0.23f));
+	big += 0.01;
 	textureMatrix.ToIdentity();
 
 	UpdateShaderMatrices();
@@ -217,17 +283,17 @@ void Renderer::DrawObject(const SceneNode& scene) {
 	auto shader = scene.GetShader();
 	BindShader(shader);
 
-	SetShaderLight(*light);
+	SetShaderLight(*light[0]);
 	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
 		"cameraPos"), 1, (float*)&camera->GetPosition());
 
-	glUniform4fv(glGetUniformLocation(shader->GetProgram(), "nodeColour"), 1, (float*)&scene.GetColour());
+	//glUniform4fv(glGetUniformLocation(shader->GetProgram(), "nodeColour"), 1, (float*)&scene.GetColour());
 
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 	glActiveTexture(GL_TEXTURE0);
 
 	auto hSize = tropicalIsland->GetHeightmapSize();
-	float sign = +1;
+	float sign = +1.0f;
 
 	//Procedurally Generated Trees
 	if (scene.GetSceneName() == "treeObject") {
@@ -236,10 +302,10 @@ void Renderer::DrawObject(const SceneNode& scene) {
 		std::uniform_int_distribution<int>  distr(0, 360), distr1(10,100), distr2(-100,100);
 		for (size_t j = 0; j < 26; ++j) {
 			if (j >= 5 && j <= 21) continue;
-			float jstep = j * 0.03;
-			if (j == 22) jstep = j * 0.0295;
+			float jstep = j * 0.03f;
+			if (j == 22) jstep = j * 0.0295f;
 			for (size_t i = 1; i < 24; ++i) {
-				float istep = i * 0.02;
+				float istep = i * 0.02f;
 				modelMatrix.ToIdentity();
 				if (!random_values_set) {
 					randomRot.push_back(distr(generator));
@@ -247,7 +313,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 					randomDelta1.push_back((distr2(generator)));
 				}
 				modelMatrix = modelMatrix
-					* Matrix4::Translation(Vector3(hSize.x * (0.25 + istep + randomDelta1[index] / 10000.0), 0.0, hSize.z * (0.1 + jstep + sign * randomDelta[index] / 10000.0)))
+					* Matrix4::Translation(Vector3(hSize.x * (0.25 + istep + randomDelta1[index] / 10000.0f), 0.0f, hSize.z * (0.1f + jstep + sign * randomDelta[index] / 10000.0f)))
 					* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / 22.0)
 					* Matrix4::Rotation(randomRot[index], Vector3(0,1,0));
 				++index;
@@ -282,7 +348,7 @@ void Renderer::RenderHeightmapWithLight(const SceneNode& scene) {
 	auto shader = scene.GetShader();
 	BindShader(shader);
 
-	SetShaderLight(*light);
+	SetShaderLight(light);
 
 	glUniform3fv(glGetUniformLocation(shader->GetProgram(),
 		"cameraPos"), 1, (float*)&camera->GetPosition());
@@ -340,6 +406,11 @@ void Renderer::DrawWater(const SceneNode& scene) {
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "areaMapTex"), 3);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, areaMapTex);
+
+	glUniform1i(glGetUniformLocation(
+		shader->GetProgram(), "bumpTex"), 4);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, waterBumpmap);
 
 	Vector3  hSize = tropicalIsland->GetHeightmapSize();
 
@@ -399,18 +470,76 @@ void   Renderer::DrawNodes() {
 }
 
 void  Renderer::RenderScene() {
-	/*glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	DrawSkybox(*Mesh::GenerateQuad());
-	DrawNode(root);
-	*/
+	projMatrix = Matrix4::Perspective(1.0f, 10000.0f, (float)width / (float)height, 45.0f);
+	DrawScene();
+	DrawPostProcess();
+	PresentScene();
+}
+
+void  Renderer::DrawScene() {
+
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT |
+		GL_STENCIL_BUFFER_BIT);
+
 	BuildNodeLists(root);
 	SortNodeLists();
-
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkybox();
 	DrawNodes();
-	//DrawWater(*Mesh::GenerateQuad());
 	ClearNodeLists();
+	textureMatrix.ToIdentity();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void  Renderer::DrawPostProcess() {
+	glBindFramebuffer(GL_FRAMEBUFFER, processFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	BindShader(processShader);
+	modelMatrix.ToIdentity();
+	viewMatrix.ToIdentity();
+	projMatrix.ToIdentity();
+	UpdateShaderMatrices();
+
+	glDisable(GL_DEPTH_TEST);
+
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(
+		processShader->GetProgram(), "sceneTex"), 0);
+	for(int i = 0; i < POST_PASSES; ++i) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[1], 0);
+		glUniform1i(glGetUniformLocation(processShader->GetProgram(),
+			"isVertical"), 0);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[0]);
+		quad->Draw();
+		//Now to swap  the  colour  buffers , and do the  second  blur  pass
+		glUniform1i(glGetUniformLocation(processShader->GetProgram(),
+			"isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, bufferColourTex[0], 0);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[1]);
+		quad->Draw();
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glEnable(GL_DEPTH_TEST);
+}
+
+void   Renderer::PresentScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	BindShader(sceneShader);
+	modelMatrix.ToIdentity();
+	viewMatrix.ToIdentity();
+	projMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bufferColourTex[0]);
+	glUniform1i(glGetUniformLocation(
+		sceneShader->GetProgram(), "diffuseTex"), 0);
+	Mesh::GenerateQuad()->Draw();
 }
 
 void   Renderer::DrawNode(SceneNode* n) {

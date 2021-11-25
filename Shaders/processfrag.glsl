@@ -6,9 +6,9 @@ vec2  texCoord;
 } IN;
 out  vec4  fragColor;
 const  float  scaleFactors [7] =
-//float [](-3,-2,-1,0,1,2,3);
+float [](-3,-2,-1,0,1,2,3);
 //float [](0.006 ,  0.061,  0.242,  0.383,  0.242,  0.061,  0.006);
-float [](0,0,0,1,0,0,0);
+//float [](0,0,0,1,0,0,0);
 void  main(void)    {
 fragColor = vec4 (0,0,0,1);
 vec2  delta = vec2 (0,0);

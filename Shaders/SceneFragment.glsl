@@ -9,13 +9,12 @@ uniform  float   lightRadius;
 //uniform  int         useTexture;
 in  Vertex    {
 vec2  texCoord;
-vec4  colour;
 vec3 worldPos;
 vec3 normal;
 } IN;
 out  vec4  fragColour;
 void  main(void)    {
-fragColour = IN.colour;
+
 //if(useTexture  > 0) {
 fragColour   =  texture(diffuseTex , IN.texCoord );
 
@@ -29,7 +28,7 @@ float  attenuation     = 1.0f - clamp(distance / lightRadius ,0.0 ,1.0);
 float  specFactor   = clamp(dot(halfDir , IN.normal ) ,0.0 ,1.0);
 specFactor          = pow(specFactor , 60.0 );
 vec3 light = lightColour.rgb * lightColour.w;
-vec3 specLight = light;//vec3(0.8314,0.6863,0.2157)*20.0*lightColour.w;
+vec3 specLight = light;//vec3(1.0f,0.0f,0.0f)*20.0*lightColour.w;
    vec3  surface    = (fragColour.rgb * light);
 fragColour.rgb += surface * lambert * attenuation;
 fragColour.rgb += (specLight * specFactor )* attenuation *0.33;//

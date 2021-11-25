@@ -5,11 +5,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 		Vector3(-150.0f, 250.0f, -150.0f));
 	quad = Mesh::GenerateQuad();
 
-	heightMap = new  HeightMap(TEXTUREDIR"noise.png");
+	heightMap = new  HeightMap(TEXTUREDIR"noise.png",1);
 	heightTexture = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG",
 		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	sceneShader = new  Shader("TexturedVertex.glsl", "TexturedFragment.glsl");
+	sceneShader = new  Shader("TexturedVertex.glsl", "/Backup/TexturedFragment.glsl");
 	processShader = new  Shader("TexturedVertex.glsl", "processfrag.glsl");
 
 	if (!processShader->LoadSuccess() || !sceneShader->LoadSuccess() || !heightTexture) {

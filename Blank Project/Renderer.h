@@ -21,7 +21,12 @@ public:
 	void ClearNodeLists();
 	void DrawNodes();
 protected:
-	void   DrawNode(SceneNode* n);
+
+	void PresentScene();
+	void DrawPostProcess();
+	void DrawScene();
+
+	void DrawNode(SceneNode* n);
 
 	void  RenderHeightmapWithLight(const SceneNode& scene);
 	void  DrawSkybox();
@@ -40,6 +45,7 @@ protected:
 	GLuint	   grassTex;
 
 	GLuint	   waterTex;
+	GLuint	   waterBumpmap;
 	Shader* reflectShader;
 	float	   waterRotate;
 	float	   waterCycle;
@@ -47,7 +53,7 @@ protected:
 	GLuint	   areaMapTex;
 	GLuint	   bumpmap;
 
-	Light* light;
+	Light* light[2];
 	Shader* lightShader;
 
 	Shader* skyboxShader;
@@ -70,4 +76,13 @@ protected:
 	Shader* animShader;
 	int		currentFrame;
 	float	frameTime;
+
+	Shader* processShader;
+	Shader* sceneShader;
+	GLuint			heightTexture;
+	GLuint			bufferFBO;
+	GLuint			processFBO;
+	GLuint			bufferColourTex[2];
+	GLuint			bufferDepthTex;
+	Mesh* quad;
 };
