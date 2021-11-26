@@ -20,6 +20,8 @@ public:
 
 	void ClearNodeLists();
 	void DrawNodes();
+
+	void TogglePostEffect();
 protected:
 
 	void PresentScene();

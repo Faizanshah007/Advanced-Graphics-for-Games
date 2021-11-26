@@ -6,7 +6,8 @@
 #include <random>
 #include <vector>
 
-const  int  POST_PASSES = 0;
+const  int  POST_PASSES = 3;
+bool post_effect_on = false;
 
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
@@ -104,7 +105,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 		Vector4(1, 1, 1, 1.5), heightmapSize.x * 0.5f);
 	light[1] = new  Light(heightmapSize * Vector3(0.5f, 0.2f, 0.6f),
 		Vector4(1, 0, 0, 2), heightmapSize.x * 0.07f);
-	
+
 	lightShader = new  Shader("bumpvertex.glsl", "bumpfragment.glsl");
 	if (!lightShader->LoadSuccess()) {
 		return;
@@ -239,6 +240,10 @@ void  Renderer::UpdateScene(float dt) {
 	root->Update(dt);
 }
 
+void Renderer::TogglePostEffect() {
+	post_effect_on = !post_effect_on;
+}
+
 void Renderer::DrawSkybox() {
 	glDepthMask(GL_FALSE);
 
@@ -261,14 +266,14 @@ void  Renderer::RenderCharacter(const SceneNode& scene) {
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"diffuseTex"), 0);
 	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+		"cameraPos"), 1, (float*)& camera->GetPosition());
 
 	auto hSize = tropicalIsland->GetHeightmapSize();
 
 	modelMatrix.ToIdentity();
 	modelMatrix = modelMatrix
 		* Matrix4::Translation(Vector3(hSize.x * (0.546), hSize.y * 0.027, hSize.z * (0.377)))
-		* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / (10.0 * 0.1) * std::clamp((sin(big)+1)/2, 0.1f, 0.23f));
+		* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / (10.0 * 0.1) * std::clamp((sin(big) + 1) / 2, 0.1f, 0.23f));
 	big += 0.01;
 	textureMatrix.ToIdentity();
 
@@ -300,7 +305,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 
 	SetShaderLight(*light[0]);
 	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+		"cameraPos"), 1, (float*)& camera->GetPosition());
 
 	//glUniform4fv(glGetUniformLocation(shader->GetProgram(), "nodeColour"), 1, (float*)&scene.GetColour());
 
@@ -314,7 +319,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 	if (scene.GetSceneName() == "treeObject") {
 		int index = 0;
 		glBindTexture(GL_TEXTURE_2D, treeTex);
-		std::uniform_int_distribution<int>  distr(0, 360), distr1(10,100), distr2(-100,100);
+		std::uniform_int_distribution<int>  distr(0, 360), distr1(10, 100), distr2(-100, 100);
 		for (size_t j = 0; j < 26; ++j) {
 			if (j >= 5 && j <= 21) continue;
 			float jstep = j * 0.03f;
@@ -330,7 +335,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 				modelMatrix = modelMatrix
 					* Matrix4::Translation(Vector3(hSize.x * (0.25 + istep + randomDelta1[index] / 10000.0f), 0.0f, hSize.z * (0.1f + jstep + sign * randomDelta[index] / 10000.0f)))
 					* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / 22.0)
-					* Matrix4::Rotation(randomRot[index], Vector3(0,1,0));
+					* Matrix4::Rotation(randomRot[index], Vector3(0, 1, 0));
 				++index;
 				sign *= -1;
 				textureMatrix.ToIdentity();
@@ -338,7 +343,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 				UpdateShaderMatrices();
 
 				scene.GetMesh()->Draw();
-				}
+			}
 		}
 		random_values_set = true;
 	}
@@ -347,7 +352,7 @@ void Renderer::DrawObject(const SceneNode& scene) {
 		glBindTexture(GL_TEXTURE_2D, boatTex);
 		modelMatrix.ToIdentity();
 		modelMatrix = modelMatrix
-			* Matrix4::Translation(Vector3(hSize.x * (0.106), -hSize.y*0.05, hSize.z * (0.418)))
+			* Matrix4::Translation(Vector3(hSize.x * (0.106), -hSize.y * 0.05, hSize.z * (0.418)))
 			* Matrix4::Scale(Vector3(1.0, 1.0, 1.0) * hSize.y / 8)
 			* Matrix4::Rotation(180, Vector3(0, 1, 0));
 		textureMatrix.ToIdentity();
@@ -366,7 +371,7 @@ void Renderer::RenderHeightmapWithLight(const SceneNode& scene) {
 	SetShaderLight(light);
 
 	glUniform3fv(glGetUniformLocation(shader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+		"cameraPos"), 1, (float*)& camera->GetPosition());
 
 	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
 	glActiveTexture(GL_TEXTURE0);
@@ -403,7 +408,7 @@ void Renderer::DrawGeom(const SceneNode& scene) {
 
 	SetShaderLight(*light[0]);
 	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+		"cameraPos"), 1, (float*)& camera->GetPosition());
 
 	glUniform1i(glGetUniformLocation(
 		shader->GetProgram(), "diffuseTex"), 0);
@@ -414,12 +419,12 @@ void Renderer::DrawGeom(const SceneNode& scene) {
 		shader->GetProgram(), "theta"), fireTheta);
 
 	Vector3  hSize = tropicalIsland->GetHeightmapSize();
-	
+
 	modelMatrix.ToIdentity();
 
-	modelMatrix = modelMatrix * 
+	modelMatrix = modelMatrix *
 		Matrix4::Translation(Vector3(hSize.x * 0.25, hSize.y * 0.02, hSize.z * 0.6)) *
-		Matrix4::Scale(Vector3(1,1,1) * hSize.y / 15.0f);
+		Matrix4::Scale(Vector3(1, 1, 1) * hSize.y / 15.0f);
 
 	textureMatrix.ToIdentity();
 
@@ -432,7 +437,7 @@ void Renderer::DrawWater(const SceneNode& scene) {
 	BindShader(shader);
 
 	glUniform3fv(glGetUniformLocation(shader->GetProgram(),
-		"cameraPos"), 1, (float*)&camera->GetPosition());
+		"cameraPos"), 1, (float*)& camera->GetPosition());
 	glUniform1f(glGetUniformLocation(
 		shader->GetProgram(), "clarity"), scene.GetColour().w);
 
@@ -440,7 +445,7 @@ void Renderer::DrawWater(const SceneNode& scene) {
 		shader->GetProgram(), "diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(
 		shader->GetProgram(), "cubeTex"), 2);
-	
+
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, waterTex);
@@ -460,7 +465,7 @@ void Renderer::DrawWater(const SceneNode& scene) {
 	Vector3  hSize = tropicalIsland->GetHeightmapSize();
 
 	modelMatrix =
-		Matrix4::Translation(Vector3(hSize.x*0.5,hSize.y*0.005, hSize.z*0.5)) *
+		Matrix4::Translation(Vector3(hSize.x * 0.5, hSize.y * 0.005, hSize.z * 0.5)) *
 		Matrix4::Scale(hSize * 0.5f) *
 		Matrix4::Rotation(90, Vector3(1, 0, 0));
 
@@ -475,8 +480,8 @@ void Renderer::DrawWater(const SceneNode& scene) {
 }
 
 void   Renderer::BuildNodeLists(SceneNode* from) {
-	if (true){
-	//if (frameFrustum.InsideFrustum(*from)) {
+	if (true) {
+		//if (frameFrustum.InsideFrustum(*from)) {
 		Vector3  dir = from->GetWorldTransform().GetPositionVector() -
 			camera->GetPosition();
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
@@ -517,13 +522,14 @@ void   Renderer::DrawNodes() {
 void  Renderer::RenderScene() {
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f, (float)width / (float)height, 45.0f);
 	DrawScene();
-	//DrawPostProcess();
-	//PresentScene();
+	if (post_effect_on) {
+		DrawPostProcess();
+		PresentScene();
+	}
 }
 
 void  Renderer::DrawScene() {
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	if (post_effect_on) glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT |
 		GL_STENCIL_BUFFER_BIT);
 
@@ -533,7 +539,7 @@ void  Renderer::DrawScene() {
 	DrawNodes();
 	ClearNodeLists();
 	textureMatrix.ToIdentity();
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (post_effect_on) glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void  Renderer::DrawPostProcess() {
@@ -553,7 +559,7 @@ void  Renderer::DrawPostProcess() {
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(
 		processShader->GetProgram(), "sceneTex"), 0);
-	for(int i = 0; i < POST_PASSES; ++i) {
+	for (int i = 0; i < POST_PASSES; ++i) {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D, bufferColourTex[1], 0);
 		glUniform1i(glGetUniformLocation(processShader->GetProgram(),

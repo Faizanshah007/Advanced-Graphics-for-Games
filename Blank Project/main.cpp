@@ -21,7 +21,7 @@ int main() {
 
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
-			renderer.Eliminate();
+			renderer.TogglePostEffect();
 		}
 		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
 		renderer.RenderScene();
@@ -35,7 +35,7 @@ int main() {
 			w.SetTitle("Tropical Island - " + std::to_string(int(round(frameCount / dt))) + " fps"); frameCount = 0;
 			start_time = std::chrono::steady_clock::now();
 		}
-		
+
 	}
 
 	return 0;
