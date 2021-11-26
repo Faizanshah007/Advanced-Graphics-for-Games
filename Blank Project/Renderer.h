@@ -21,7 +21,8 @@ public:
 	void ClearNodeLists();
 	void DrawNodes();
 
-	void TogglePostEffect();
+	void TogglePostEffect(const int& val);
+	void ToggleFireSmoke() { isFireOn = !isFireOn; }
 protected:
 
 	void PresentScene();
@@ -39,6 +40,7 @@ protected:
 
 	void  BuildNodeLists(SceneNode* from);
 	void  SortNodeLists();
+
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
 
@@ -93,4 +95,6 @@ protected:
 	GLuint woodTex;
 	Shader* geomShader;
 	float fireTheta;
+
+	int isFireOn = 1;
 };

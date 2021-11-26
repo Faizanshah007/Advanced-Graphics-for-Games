@@ -30,9 +30,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="doubts.txt">
-      <Filter>Source Files</Filter>
-    </Text>
     <Text Include="camMeta.txt">
       <Filter>Source Files</Filter>
     </Text>

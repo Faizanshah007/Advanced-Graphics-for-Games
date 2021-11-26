@@ -20,9 +20,26 @@ int main() {
 	int frameCount = 0;
 
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
-		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
-			renderer.TogglePostEffect();
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_0)) {
+			renderer.TogglePostEffect(0); // No effect
 		}
+
+		else if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
+			renderer.TogglePostEffect(1); // My Special
+		}
+
+		else if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2)) {
+			renderer.TogglePostEffect(2); // Blur
+		}
+
+		else if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_3)) {
+			renderer.TogglePostEffect(3); // Bloom
+		}
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_F)) {
+			renderer.ToggleFireSmoke(); // Fire / Smoke
+		}
+
 		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
 		renderer.RenderScene();
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_F5)) {

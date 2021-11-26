@@ -8,6 +8,7 @@
 
 const  int  POST_PASSES = 3;
 bool post_effect_on = false;
+int post_effect = 0;
 
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
@@ -89,8 +90,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	skyboxShader = new  Shader("skyboxVertex.glsl", "skyboxFragment.glsl");
 	reflectShader = new  Shader("reflectVertex.glsl", "reflectFragment.glsl");
 	objectShader = new Shader("SceneVertex.glsl", "SceneFragment.glsl");
-	animShader = new  Shader("SkinningVertex.glsl", "SceneFragment.glsl");//"texturedFragment.glsl");
-	sceneShader = new  Shader("TexturedVertex.glsl", "/Backup/TexturedFragment.glsl");
+	animShader = new  Shader("SkinningVertex.glsl", "SceneFragment.glsl");
+	sceneShader = new  Shader("TexturedVertex.glsl", "TexturedFragment1.glsl");
 	processShader = new  Shader("TexturedVertex.glsl", "processfrag.glsl");
 	geomShader = new Shader("pointVert.glsl", "TexturedFragment.glsl", "pointGeom.glsl");
 	if (!skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !objectShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess() || !geomShader->LoadSuccess()) {
@@ -237,11 +238,13 @@ void  Renderer::UpdateScene(float dt) {
 		currentFrame = (currentFrame + 1) % anim->GetFrameCount();
 		frameTime += 1.0f / anim->GetFrameRate();
 	}
-	root->Update(dt);
+	root->Update(dt); // Parent based transform included, Loops through child nodes!!
 }
 
-void Renderer::TogglePostEffect() {
-	post_effect_on = !post_effect_on;
+void Renderer::TogglePostEffect(const int& val) {
+	if (val == 0) post_effect_on = false;
+	else post_effect_on = true;
+	post_effect = val;
 }
 
 void Renderer::DrawSkybox() {
@@ -364,7 +367,6 @@ void Renderer::DrawObject(const SceneNode& scene) {
 }
 
 void Renderer::RenderHeightmapWithLight(const SceneNode& scene) {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	auto shader = scene.GetShader();
 	BindShader(shader);
 
@@ -414,6 +416,8 @@ void Renderer::DrawGeom(const SceneNode& scene) {
 		shader->GetProgram(), "diffuseTex"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, woodTex);
+	glUniform1i(glGetUniformLocation(
+		shader->GetProgram(), "mode"), isFireOn);
 
 	glUniform1f(glGetUniformLocation(
 		shader->GetProgram(), "theta"), fireTheta);
@@ -475,13 +479,11 @@ void Renderer::DrawWater(const SceneNode& scene) {
 		Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
 
 	UpdateShaderMatrices();
-	// SetShaderLight (* light); //No  lighting  in this  shader!
 	scene.GetMesh()->Draw();
 }
 
 void   Renderer::BuildNodeLists(SceneNode* from) {
 	if (true) {
-		//if (frameFrustum.InsideFrustum(*from)) {
 		Vector3  dir = from->GetWorldTransform().GetPositionVector() -
 			camera->GetPosition();
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
@@ -559,6 +561,8 @@ void  Renderer::DrawPostProcess() {
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(
 		processShader->GetProgram(), "sceneTex"), 0);
+	glUniform1i(glGetUniformLocation(
+		processShader->GetProgram(), "mode"), post_effect);
 	for (int i = 0; i < POST_PASSES; ++i) {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D, bufferColourTex[1], 0);

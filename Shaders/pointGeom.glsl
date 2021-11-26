@@ -2,9 +2,11 @@
 uniform mat4 viewMatrix ;
 uniform mat4 projMatrix ;
 uniform float theta;
+uniform int mode;
 
 layout(triangles) in;
-layout(triangle_strip , max_vertices = 6) out;
+layout(triangle_strip , max_vertices = 20) out;
+//layout(points, max_vertices = 3) out;
 
 in Vertex {
 vec2 texCoord;
@@ -31,28 +33,61 @@ vec3  worldPos;
 	OUT.normal = IN[i].normal;
 	EmitVertex ();
  }
+ EndPrimitive ();
+ if(mode == 0) {
  newPos = gl_in[ 2 ]. gl_Position;
- newPos.x += 13 * cos(theta);
- newPos.y +=  53 * (abs(sin(theta) + 1.5f));
+ newPos.x += 13 * cos(theta) + 10;
+ newPos.y +=  int(53 * theta) % 200;
  OUT.worldPos = newPos.xyz;
  newPos.z += 13 * sin(theta);
  gl_Position = vp * newPos;
- OUT.finalColour = vec4(0.8863,0.3451,0.1333,1);
+ OUT.finalColour = vec4(0.0f,0.0f,0.0f,10.0f);
  OUT.normal = IN[2].normal;
  EmitVertex();
- 
-  newPos = gl_in[ 0 ]. gl_Position;
- gl_Position = vp * newPos;
+
+ newPos = gl_in[ 2 ]. gl_Position;
+ newPos.x += 13 * cos(theta);
+ newPos.y +=  int(53 * theta) % 200;
  OUT.worldPos = newPos.xyz;
- OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
- OUT.normal = IN[0].normal;
- EmitVertex();
- 
-  newPos = gl_in[ 1 ]. gl_Position;
+ newPos.z += 13 * sin(theta) + 10;
  gl_Position = vp * newPos;
- OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
- OUT.worldPos = newPos.xyz;
- OUT.normal = IN[1].normal;
+ OUT.finalColour = vec4(0.0f,0.0f,0.0f,10.0f);
+ OUT.normal = IN[2].normal;
  EmitVertex();
- EndPrimitive ();
+
+ newPos = gl_in[ 2 ]. gl_Position;
+ newPos.x += 13 * cos(theta);
+ newPos.y +=  int(53 * theta) % 200;
+ OUT.worldPos = newPos.xyz;
+ newPos.z += 13 * sin(theta);
+ gl_Position = vp * newPos;
+ OUT.finalColour = vec4(0.0f,0.0f,0.0f,10.0f);
+ OUT.normal = IN[2].normal;
+ EmitVertex();
+ }
+ else if(mode == 1) {
+	 newPos = gl_in[ 2 ]. gl_Position;
+	 newPos.x += 13 * cos(theta) + 10;
+	 newPos.y +=  53 * (abs(sin(theta) + 1.5f));
+	 OUT.worldPos = newPos.xyz;
+	 newPos.z += 13 * sin(theta);
+	 gl_Position = vp * newPos;
+	 OUT.finalColour = vec4(1.0f,0.0f,0.0f,1.0f);
+	 OUT.normal = IN[2].normal;
+	 EmitVertex();
+	newPos = gl_in[ 0 ]. gl_Position;
+	gl_Position = vp * newPos;
+	OUT.worldPos = newPos.xyz;
+	OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
+	OUT.normal = IN[0].normal;
+	EmitVertex();
+	
+	 newPos = gl_in[ 1 ]. gl_Position;
+	gl_Position = vp * newPos;
+	OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
+	OUT.worldPos = newPos.xyz;
+	OUT.normal = IN[1].normal;
+	EmitVertex();
+	EndPrimitive ();
+ }
 }

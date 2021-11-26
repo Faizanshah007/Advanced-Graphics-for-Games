@@ -5,12 +5,12 @@
 void Camera::UpdateCamera(float dt) {
 	pitch -= (Window::GetMouse()->GetRelativePosition().y);
 	yaw -= (Window::GetMouse()->GetRelativePosition().x);
-	file.read((char*)& position.x, sizeof(float));
+	/*file.read((char*)& position.x, sizeof(float));
 	file.read((char*)& position.y, sizeof(float));
 	file.read((char*)& position.z, sizeof(float));
 	file.read((char*)& pitch, sizeof(float));
-	file.read((char*)& yaw, sizeof(float));
-	//std::cout << position.x << std::endl;
+	file.read((char*)& yaw, sizeof(float));*/
+
 	pitch = std::min(pitch, 90.0f);
 	pitch = std::max(pitch, -90.0f);
 
