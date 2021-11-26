@@ -2,21 +2,26 @@
 
 #include "Matrix4.h"
 #include "Vector3.h"
+#include <fstream>
 
 class Camera {
 public:
 	Camera(void) {
 		yaw = 0.0f;
 		pitch = 0.0f;
+		//file.open("camMeta.txt", std::fstream::in);
+		file.open("camMeta.txt", std::fstream::in | std::fstream::binary);
 	}
 
 	Camera(float pitch, float yaw, Vector3 position) {
 		this->pitch = pitch;
 		this->yaw = yaw;
 		this->position = position;
+		//file.open("camMeta.txt", std::fstream::in);
+		file.open("camMeta.txt", std::fstream::in | std::fstream::binary);
 	}
 
-	~Camera(void) {}
+	~Camera(void) { file.close(); }
 
 	void UpdateCamera(float dt = 1.0f);
 
@@ -31,12 +36,13 @@ public:
 	float GetPitch() const { return pitch; }
 	void SetPitch(float p) { pitch = p; }
 
-	float GetRoll() const { return roll; }
-	void SetRoll(float r) { pitch = r; }
-
 protected:
 	float yaw;
 	float pitch;
-	float roll;
-	Vector3 position; // Set to 0 ,0 ,0 by Vector3 constructor ;)
+	float prevYaw;
+	float prevPitch;
+	Vector3 position;
+	Vector3 prevPosition;
+
+	std::fstream file;
 };

@@ -146,6 +146,7 @@
     <ClInclude Include="SceneNode.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="camMeta.txt" />
     <Text Include="doubts.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
