@@ -69,7 +69,13 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 		TEXTUREDIR"Texture8x8.png", SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	if (!terrainTex || !grassTex || !areaMapTex || !bumpmap || !waterTex || !treeTex || !boatTex) {
+	bonfire = Mesh::LoadFromMeshFile("Bonfire_B_Small_Fire.msh");
+
+	woodTex = SOIL_load_OGL_texture(
+		TEXTUREDIR"Texture, Wall rock and wood.png", SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	if (!terrainTex || !grassTex || !areaMapTex || !bumpmap || !waterTex || !treeTex || !boatTex || !woodTex) {
 		return;
 	}
 
@@ -85,7 +91,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	animShader = new  Shader("SkinningVertex.glsl", "SceneFragment.glsl");//"texturedFragment.glsl");
 	sceneShader = new  Shader("TexturedVertex.glsl", "/Backup/TexturedFragment.glsl");
 	processShader = new  Shader("TexturedVertex.glsl", "processfrag.glsl");
-	if (!skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !objectShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
+	geomShader = new Shader("pointVert.glsl", "TexturedFragment.glsl", "pointGeom.glsl");
+	if (!skyboxShader->LoadSuccess() || !reflectShader->LoadSuccess() || !objectShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess() || !geomShader->LoadSuccess()) {
 		return;
 	}
 	////////////////////////////////////////////////////////////////////
@@ -94,7 +101,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	////////////////////////////////////////////////////////////////////
 	Vector3 heightmapSize = tropicalIsland->GetHeightmapSize();
 	light[0] = new  Light(heightmapSize * Vector3(0.5f, 1.5f, 0.5f),
-		Vector4(1, 1, 1, 1), heightmapSize.x * 0.5f);
+		Vector4(1, 1, 1, 1.5), heightmapSize.x * 0.5f);
 	light[1] = new  Light(heightmapSize * Vector3(0.5f, 0.2f, 0.6f),
 		Vector4(1, 0, 0, 2), heightmapSize.x * 0.07f);
 	
@@ -130,6 +137,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 
 	// Adding Anim Character
 	heightmapLight->AddChild(new SceneNode(animShader, animMesh, Vector4(1, 1, 1, 1), "character"));
+
+	// Adding Bornfire
+	heightmapLight->AddChild(new SceneNode(geomShader, bonfire, Vector4(0.643f, 0.455, 0.286, 1), "bonfire"));
 
 	// Adding Water
 	heightmapLight->AddChild(new SceneNode(reflectShader, Mesh::GenerateQuad(), Vector4(1, 1, 1, 0.3), "water"));
@@ -187,6 +197,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	currentFrame = 0;
 	frameTime = 0.0f;
 
+	fireTheta = 0.0f;
+
 	init = true;
 }
 
@@ -217,7 +229,8 @@ void  Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
 	waterRotate += dt * 2.0f; //2 degrees a second
-	waterCycle += dt * 0.5f; //0.25f;//10  units a second
+	waterCycle += dt * 0.25f; //0.25//10  units a second
+	fireTheta += dt * 2;
 	frameTime -= dt;//*0.1;
 	while (frameTime < 0.0f) {
 		currentFrame = (currentFrame + 1) % anim->GetFrameCount();
@@ -232,7 +245,7 @@ void Renderer::DrawSkybox() {
 	BindShader(skyboxShader);
 	UpdateShaderMatrices();
 
-	Mesh::GenerateQuad()->Draw();
+	quad->Draw();
 
 	glDepthMask(GL_TRUE);
 }
@@ -247,6 +260,8 @@ void  Renderer::RenderCharacter(const SceneNode& scene) {
 	SetShaderLight(*light[0]);
 	glUniform1i(glGetUniformLocation(shader->GetProgram(),
 		"diffuseTex"), 0);
+	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
 
 	auto hSize = tropicalIsland->GetHeightmapSize();
 
@@ -382,6 +397,36 @@ void Renderer::RenderHeightmapWithLight(const SceneNode& scene) {
 	scene.GetMesh()->Draw();
 }
 
+void Renderer::DrawGeom(const SceneNode& scene) {
+	auto shader = scene.GetShader();
+	BindShader(shader);
+
+	SetShaderLight(*light[0]);
+	glUniform3fv(glGetUniformLocation(lightShader->GetProgram(),
+		"cameraPos"), 1, (float*)&camera->GetPosition());
+
+	glUniform1i(glGetUniformLocation(
+		shader->GetProgram(), "diffuseTex"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, woodTex);
+
+	glUniform1f(glGetUniformLocation(
+		shader->GetProgram(), "theta"), fireTheta);
+
+	Vector3  hSize = tropicalIsland->GetHeightmapSize();
+	
+	modelMatrix.ToIdentity();
+
+	modelMatrix = modelMatrix * 
+		Matrix4::Translation(Vector3(hSize.x * 0.25, hSize.y * 0.02, hSize.z * 0.6)) *
+		Matrix4::Scale(Vector3(1,1,1) * hSize.y / 15.0f);
+
+	textureMatrix.ToIdentity();
+
+	UpdateShaderMatrices();
+	scene.GetMesh()->Draw();
+}
+
 void Renderer::DrawWater(const SceneNode& scene) {
 	auto shader = scene.GetShader();
 	BindShader(shader);
@@ -472,13 +517,13 @@ void   Renderer::DrawNodes() {
 void  Renderer::RenderScene() {
 	projMatrix = Matrix4::Perspective(1.0f, 10000.0f, (float)width / (float)height, 45.0f);
 	DrawScene();
-	DrawPostProcess();
-	PresentScene();
+	//DrawPostProcess();
+	//PresentScene();
 }
 
 void  Renderer::DrawScene() {
 
-	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	//glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT |
 		GL_STENCIL_BUFFER_BIT);
 
@@ -488,7 +533,7 @@ void  Renderer::DrawScene() {
 	DrawNodes();
 	ClearNodeLists();
 	textureMatrix.ToIdentity();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void  Renderer::DrawPostProcess() {
@@ -549,6 +594,7 @@ void   Renderer::DrawNode(SceneNode* n) {
 		else if (n->GetSceneName() == "water") DrawWater(*n);
 		else if (n->GetSceneName().find("Object") != std::string::npos) DrawObject(*n);
 		else if (n->GetSceneName() == "character") RenderCharacter(*n);
+		else if (n->GetSceneName() == "bonfire") DrawGeom(*n);
 	}
 	for (vector <SceneNode*>::const_iterator
 		i = n->GetChildIteratorStart();

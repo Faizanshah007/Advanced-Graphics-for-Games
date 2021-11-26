@@ -33,6 +33,7 @@ protected:
 	void  DrawWater(const SceneNode& scene);
 	void  DrawObject(const SceneNode& scene);
 	void  RenderCharacter(const SceneNode& scene);
+	void  DrawGeom(const SceneNode& scene);
 
 	void  BuildNodeLists(SceneNode* from);
 	void  SortNodeLists();
@@ -85,4 +86,9 @@ protected:
 	GLuint			bufferColourTex[2];
 	GLuint			bufferDepthTex;
 	Mesh* quad;
+
+	Mesh* bonfire;
+	GLuint woodTex;
+	Shader* geomShader;
+	float fireTheta;
 };

@@ -1,48 +1,58 @@
 #version 330 core
+uniform mat4 viewMatrix ;
+uniform mat4 projMatrix ;
+uniform float theta;
 
-uniform float particleSize = 10.0f;
-
-layout(points) in;
-layout(triangle_strip , max_vertices = 4) out;
+layout(triangles) in;
+layout(triangle_strip , max_vertices = 6) out;
 
 in Vertex {
-vec4 colour;
- vec2 texCoord;
- } IN[];
- out Vertex {
- vec4 colour;
- vec2 texCoord;
- } OUT;
- 
- void main() {
-for(int i = 0; i < gl_in.length (); ++i) {
-OUT.colour = IN[i]. colour;
-//top right
-gl_Position = gl_in[ i ]. gl_Position;
-gl_Position.x += particleSize;
-gl_Position.y += particleSize;
-OUT.texCoord = vec2 (1,0);
-EmitVertex ();
-//Then we do the other vertices of the quad ...
-//Top Left
-gl_Position = gl_in[ i ]. gl_Position;
-gl_Position.x -= particleSize;
-gl_Position.y += particleSize;
-OUT.texCoord = vec2 (0,0);
-EmitVertex ();
-// bottom right
-gl_Position = gl_in[ i ]. gl_Position;
-gl_Position.x += particleSize;
-gl_Position.y -= particleSize;
-OUT.texCoord = vec2 (1,1);
-EmitVertex ();
-// bottom Left
-gl_Position = gl_in[ i ]. gl_Position;
-gl_Position.x -= particleSize;
-gl_Position.y -= particleSize;
-OUT.texCoord = vec2 (0,1);
-EmitVertex ();
+vec2 texCoord;
+vec3 normal;
+} IN[];
 
-EndPrimitive ();
-}
+ out Vertex {
+ vec2 texCoord;
+ flat vec4 finalColour;
+ vec3  normal;
+vec3  worldPos;
+ } OUT;
+
+ void main() {
+  vec4 newPos;
+ mat4 vp = projMatrix * viewMatrix;
+
+ for(int i = 0; i < gl_in.length (); ++i) {
+	newPos = gl_in[ i ]. gl_Position;
+	OUT.worldPos = newPos.xyz;
+	gl_Position = vp * newPos;
+	OUT.finalColour = vec4(0,0,0,1);//vec4(0.643f, 0.455f, 0.286f,1.0f);
+	OUT.texCoord = IN[i].texCoord;
+	OUT.normal = IN[i].normal;
+	EmitVertex ();
+ }
+ newPos = gl_in[ 2 ]. gl_Position;
+ newPos.x += 13 * cos(theta);
+ newPos.y +=  53 * (abs(sin(theta) + 1.5f));
+ OUT.worldPos = newPos.xyz;
+ newPos.z += 13 * sin(theta);
+ gl_Position = vp * newPos;
+ OUT.finalColour = vec4(0.8863,0.3451,0.1333,1);
+ OUT.normal = IN[2].normal;
+ EmitVertex();
+ 
+  newPos = gl_in[ 0 ]. gl_Position;
+ gl_Position = vp * newPos;
+ OUT.worldPos = newPos.xyz;
+ OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
+ OUT.normal = IN[0].normal;
+ EmitVertex();
+ 
+  newPos = gl_in[ 1 ]. gl_Position;
+ gl_Position = vp * newPos;
+ OUT.finalColour = vec4(0.8863,0.3451,0.1333, 1);
+ OUT.worldPos = newPos.xyz;
+ OUT.normal = IN[1].normal;
+ EmitVertex();
+ EndPrimitive ();
 }

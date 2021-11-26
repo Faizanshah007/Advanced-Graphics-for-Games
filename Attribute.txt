@@ -4,3 +4,7 @@ https://www.babylonjs-playground.com/#UU7RQ#95 - cubemap TropicalSunnyDay
 https://assetstore.unity.com/packages/3d/vegetation/trees/free-trees-103208 - tree
 
 paint3d boat
+
+character & Animation - mixamo
+
+bornfire - https://assetstore.unity.com/packages/3d/props/the-free-medieval-and-war-props-174433
