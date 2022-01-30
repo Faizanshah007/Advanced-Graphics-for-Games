@@ -9,15 +9,15 @@ public:
 	Camera(void) {
 		yaw = 0.0f;
 		pitch = 0.0f;
-		//file.open("camMeta.txt", std::fstream::in);
-		file.open("camMeta.txt", std::fstream::in | std::fstream::binary);
+		//file.open("camMeta.txt", std::fstream::out | std::fstream::binary);
+		file.open("camMeta.txt", std::fstream::in| std::fstream::binary);
 	}
 
 	Camera(float pitch, float yaw, Vector3 position) {
 		this->pitch = pitch;
 		this->yaw = yaw;
 		this->position = position;
-		//file.open("camMeta.txt", std::fstream::in);
+		//file.open("camMeta.txt", std::fstream::out | std::fstream::binary);
 		file.open("camMeta.txt", std::fstream::in | std::fstream::binary);
 	}
 

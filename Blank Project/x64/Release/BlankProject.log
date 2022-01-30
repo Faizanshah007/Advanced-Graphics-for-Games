@@ -1,0 +1,8 @@
+﻿  main.cpp
+  Renderer.cpp
+C:\Users\faiza\OneDrive - Newcastle University\CSC8502 2021\CSC8502 2021\Blank Project\Renderer.cpp(76,98): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\faiza\OneDrive - Newcastle University\CSC8502 2021\CSC8502 2021\Blank Project\Renderer.cpp(188,66): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+C:\Users\faiza\OneDrive - Newcastle University\CSC8502 2021\CSC8502 2021\Blank Project\Renderer.cpp(188,51): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+C:\Users\faiza\OneDrive - Newcastle University\CSC8502 2021\CSC8502 2021\Blank Project\Renderer.cpp(188,39): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+  SceneNode.cpp
+LINK : fatal error LNK1181: cannot open input file 'nclgl.lib'

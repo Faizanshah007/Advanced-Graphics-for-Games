@@ -1,0 +1,33 @@
+﻿  main.cpp
+  Renderer.cpp
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\main.cpp(50,12): warning C4244:  'initializing': conversion from '_Rep' to 'float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\main.cpp(50,12): warning C4244:         with
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\main.cpp(50,12): warning C4244:         [
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\main.cpp(50,12): warning C4244:             _Rep=__int64
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\main.cpp(50,12): warning C4244:         ]
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(122,103): warning C4305:  'argument': truncation from 'double' to 'float'
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(144,106): warning C4305:  'argument': truncation from 'double' to 'float'
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(147,109): warning C4305:  'argument': truncation from 'double' to 'float'
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(278,78): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(278,61): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(278,42): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(280,13): warning C4305:  '+=': truncation from 'double' to 'float'
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(296,31): warning C4267:  'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(339,45): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(341,41): warning C4244:  'argument': conversion from '_Ty' to 'float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(341,41): warning C4244:         with
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(341,41): warning C4244:         [
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(341,41): warning C4244:             _Ty=int
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(341,41): warning C4244:         ]
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(358,79): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(358,63): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(358,43): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(430,72): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(430,56): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(430,40): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(472,72): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(472,55): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+  SceneNode.cpp
+  Generating Code...
+H:\Desktop\Final_8502\Final_8502\CSC8502 2021\Blank Project\Renderer.cpp(472,40): warning C4244:  'argument': conversion from 'double' to 'const float', possible loss of data
+  BlankProject.vcxproj -> H:\Desktop\Final_8502\Final_8502\CSC8502 2021\x64\Debug\Blank Project.exe

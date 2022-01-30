@@ -3,7 +3,7 @@
 #include <chrono>
 
 int main() {
-	Window w("Loading!!!", 1280, 720, false);
+	Window w("Loading!!!", 1280, 720, false); //Set true for fullscreen - check compatiblity
 	if (!w.HasInitialised()) {
 		return -1;
 	}

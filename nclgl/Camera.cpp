@@ -5,11 +5,12 @@
 void Camera::UpdateCamera(float dt) {
 	pitch -= (Window::GetMouse()->GetRelativePosition().y);
 	yaw -= (Window::GetMouse()->GetRelativePosition().x);
-	/*file.read((char*)& position.x, sizeof(float));
+
+	file.read((char*)& position.x, sizeof(float));
 	file.read((char*)& position.y, sizeof(float));
 	file.read((char*)& position.z, sizeof(float));
 	file.read((char*)& pitch, sizeof(float));
-	file.read((char*)& yaw, sizeof(float));*/
+	file.read((char*)& yaw, sizeof(float));
 
 	pitch = std::min(pitch, 90.0f);
 	pitch = std::max(pitch, -90.0f);
@@ -45,18 +46,17 @@ void Camera::UpdateCamera(float dt) {
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE)) {
 		position.y -= speed;
 	}
-	//if (!(prevPosition == position && prevYaw == yaw && prevPitch == pitch)) {
-	//	file.write((char*)& position.x, sizeof(float));
-	//	file.write((char*)& position.y, sizeof(float));
-	//	file.write((char*)& position.z, sizeof(float));
-	//	file.write((char*)& pitch, sizeof(float));
-	//	file.write((char*)& yaw, sizeof(float));
-	//	//file << std::to_string(position.x) + " " + std::to_string(position.y) + " " + std::to_string(position.z) + " " + std::to_string(pitch) + " " + std::to_string(yaw) << std::endl;
-	//}
+	/*if (!(prevPosition == position && prevYaw == yaw && prevPitch == pitch)) {
+		file.write((char*)& position.x, sizeof(float));
+		file.write((char*)& position.y, sizeof(float));
+		file.write((char*)& position.z, sizeof(float));
+		file.write((char*)& pitch, sizeof(float));
+		file.write((char*)& yaw, sizeof(float));
+	}
 
-	//prevPosition = position;
-	//prevYaw = yaw;
-	//prevPitch = pitch;
+	prevPosition = position;
+	prevYaw = yaw;
+	prevPitch = pitch;*/
 }
 
 Matrix4 Camera::BuildViewMatrix() {
